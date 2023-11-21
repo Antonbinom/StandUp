@@ -1,0 +1,17 @@
+{
+  "name": "api_stand-up",
+  "version": "1.0.0",
+  "description": "api for booking stand-up show tickets",
+  "main": "index.js",
+  "scripts": {
+    "run": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "type": "module",
+  
+  "author": "ANton Semenikhin",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
