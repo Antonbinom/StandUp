@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 
-export async function checkFile(path, isFileExists) {
-  if (isFileExists) {
+export async function checkFile(path, notNecessary) {
+  if (notNecessary) {
     try {
       await fs.access(path);
       console.log(`File ${path} found.`);
@@ -14,10 +14,11 @@ export async function checkFile(path, isFileExists) {
   try {
     await fs.access(path)
     console.log(`File ${path} found. Starting the server...`);
-  } catch (error) {
+    return true;
+  } catch (err) {
     console.error(`Error: File ${path} not found. Server will not start.`);
     return false;
   }
 
-  return true;
+  // return true;
 }

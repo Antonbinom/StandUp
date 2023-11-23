@@ -1,17 +1,23 @@
 import http from "node:http";
 import fs from "node:fs/promises";
-import { sendData, sendError } from "./modules/send.js";
+import { sendError } from "./modules/send.js";
 import { checkFile } from "./modules/checkFile.js";
+import { handleComedianRequest } from "./modules/handelComediansRequest.js";
+import { handleAddClient } from "./modules/handleAddClient.js";
+import { handleGetClient } from "./modules/handleGetClient.js";
+import { handleUpdateClient } from "./modules/handleUpdateClient.js";
 
 const PORT = '8080';
 const COMEDIANS = './comedians.json';
 const CLIENTS = './clients.json';
 
-
-
 async function startServer() {
   if (!(await checkFile(COMEDIANS))) return;
-  await checkFile(CLIENTS, true)
+  await checkFile(CLIENTS, true);
+
+  const comediansData = await fs.readFile(COMEDIANS, "utf-8");
+  const comedians = JSON.parse(comediansData);
+
   http
     .createServer(async (req, res) => {
       try {
@@ -22,21 +28,7 @@ async function startServer() {
         if (
           req.method === "GET"
           && segments[0] === 'comedians') {
-          const data = await fs.readFile(COMEDIANS, "utf-8");
-          const comedians = JSON.parse(data);
-
-          if (segments.length === 2) {
-            const comedian = comedians.find(c => c.id === segments[1]);
-
-            if (!comedian) {
-              sendError(res, 404, 'Comedian not found!');
-              return;
-            }
-
-            sendData(res, comedian);
-            return;
-          }
-          sendData(res, comedians)
+          handleComedianRequest(req, res, comedians, segments)
           return;
         }
 
@@ -44,24 +36,27 @@ async function startServer() {
           req.method === "GET"
           && segments[0] === 'clients'
           && segments.length === 2) {
-
+          const ticket = segments[1];
+          handleGetClient(req, res, CLIENTS, ticket);
+          return;
         }
         if (
           req.method === "POST"
           && segments[0] === 'clients') {
-
+          handleAddClient(req, res, CLIENTS);
+          return;
         }
 
         if (
           req.method === "PATCH"
           && segments[0] === 'clients'
           && segments.length === 2) {
-
+          handleUpdateClient(req, res, CLIENTS, segments[1]);
+          return;
         }
         sendError(res, 404, `Server error: "<h1>Ooops! 404 Not found :(</h1>"`);
       } catch (err) {
         sendError(res, 500, `Server error: ${err}`);
-
       }
     })
     .listen(PORT)
@@ -70,8 +65,3 @@ async function startServer() {
 
 }
 startServer();
-
-//при запуске node index.js или nodemon index.js проверять наличие файла comedians.json
-// и проверяет наличие файла clients.json
-// если файла comedians.json отсутствует, то останавливаем сервер
-// если отсутствует файл clients.json, то просто его создаем с пустым массивом внутри
